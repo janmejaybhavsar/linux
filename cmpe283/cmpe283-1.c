@@ -119,7 +119,7 @@ struct capability_info exitbased[16] =
 	{31, "Activate Secondary Controls"}
 };
 
-struct capability_info entrybased[12] = 
+struct capability_info entrybased[13] = 
 {
 	{2, "Load Debug Controls"},
 	{9, "IA-32e Mode Guest"},
