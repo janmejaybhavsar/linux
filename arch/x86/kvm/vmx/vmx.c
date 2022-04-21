@@ -70,6 +70,9 @@
 MODULE_AUTHOR("Qumranet");
 MODULE_LICENSE("GPL");
 
+extern u32 total_exits;
+extern u64 time_in_vmm;
+
 #ifdef MODULE
 static const struct x86_cpu_id vmx_cpu_id[] = {
 	X86_MATCH_FEATURE(X86_FEATURE_VMX, NULL),
@@ -6002,15 +6005,31 @@ void dump_vmcs(struct kvm_vcpu *vcpu)
 }
 
 /*
+* This function returns the current CPU cycles for which the time stamp is incremented by every CPU tick. 
+* This code is referenced from the website www.mcs.anl.gov/~kazutomo/rdtsc.html
+*/
+static __inline__ unsigned long long get_current_time_stamp(void){
+	unsigned hi, lo;
+	__asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+	return ((unsigned long long) lo) | (((unsigned long long) hi) << 32);
+}
+
+/*
  * The guest has exited.  See if we can fix it or if we need userspace
  * assistance.
  */
 static int __vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 {
+	u64 begin_time = get_current_time_stamp();
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 	union vmx_exit_reason exit_reason = vmx->exit_reason;
 	u32 vectoring_info = vmx->idt_vectoring_info;
 	u16 exit_handler_index;
+
+	u64 end_time = 0;
+	u64 in_time = 0;
+
+	total_exits++;
 
 	/*
 	 * Flush logged GPAs PML buffer, this will make dirty_bitmap more
@@ -6029,17 +6048,26 @@ static int __vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	 * invalid guest state should never happen as that means KVM knowingly
 	 * allowed a nested VM-Enter with an invalid vmcs12.  More below.
 	 */
-	if (KVM_BUG_ON(vmx->nested.nested_run_pending, vcpu->kvm))
+	if (KVM_BUG_ON(vmx->nested.nested_run_pending, vcpu->kvm)){
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		return -EIO;
+	}
 
 	if (is_guest_mode(vcpu)) {
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		/*
 		 * PML is never enabled when running L2, bail immediately if a
 		 * PML full exit occurs as something is horribly wrong.
 		 */
 		if (exit_reason.basic == EXIT_REASON_PML_FULL)
 			goto unexpected_vmexit;
-
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		/*
 		 * The host physical addresses of some pages of guest memory
 		 * are loaded into the vmcs02 (e.g. vmcs12's Virtual APIC
@@ -6074,8 +6102,12 @@ static int __vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	}
 
 	/* If guest state is invalid, start emulating.  L2 is handled above. */
-	if (vmx->emulation_required)
+	if (vmx->emulation_required){
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		return handle_invalid_guest_state(vcpu);
+	}
 
 	if (exit_reason.failed_vmentry) {
 		dump_vmcs(vcpu);
@@ -6083,6 +6115,9 @@ static int __vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 		vcpu->run->fail_entry.hardware_entry_failure_reason
 			= exit_reason.full;
 		vcpu->run->fail_entry.cpu = vcpu->arch.last_vmentry_cpu;
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		return 0;
 	}
 
@@ -6149,24 +6184,51 @@ static int __vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	if (exit_reason.basic >= kvm_vmx_max_exit_handlers)
 		goto unexpected_vmexit;
 #ifdef CONFIG_RETPOLINE
-	if (exit_reason.basic == EXIT_REASON_MSR_WRITE)
+	if (exit_reason.basic == EXIT_REASON_MSR_WRITE){
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		return kvm_emulate_wrmsr(vcpu);
-	else if (exit_reason.basic == EXIT_REASON_PREEMPTION_TIMER)
+	}
+	else if (exit_reason.basic == EXIT_REASON_PREEMPTION_TIMER){
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		return handle_preemption_timer(vcpu);
-	else if (exit_reason.basic == EXIT_REASON_INTERRUPT_WINDOW)
+	}
+	else if (exit_reason.basic == EXIT_REASON_INTERRUPT_WINDOW){
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		return handle_interrupt_window(vcpu);
-	else if (exit_reason.basic == EXIT_REASON_EXTERNAL_INTERRUPT)
+	}
+	else if (exit_reason.basic == EXIT_REASON_EXTERNAL_INTERRUPT){
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		return handle_external_interrupt(vcpu);
-	else if (exit_reason.basic == EXIT_REASON_HLT)
+	}
+	else if (exit_reason.basic == EXIT_REASON_HLT){
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		return kvm_emulate_halt(vcpu);
-	else if (exit_reason.basic == EXIT_REASON_EPT_MISCONFIG)
+	}
+	else if (exit_reason.basic == EXIT_REASON_EPT_MISCONFIG){
+		end_time = get_current_time_stamp();
+		in_time = end_time - begin_time;
+		time_in_vmm += in_time;
 		return handle_ept_misconfig(vcpu);
+	}
 #endif
 
 	exit_handler_index = array_index_nospec((u16)exit_reason.basic,
 						kvm_vmx_max_exit_handlers);
 	if (!kvm_vmx_exit_handlers[exit_handler_index])
 		goto unexpected_vmexit;
+	end_time = get_current_time_stamp();
+	in_time = end_time - begin_time;
+	time_in_vmm += in_time;
 
 	return kvm_vmx_exit_handlers[exit_handler_index](vcpu);
 
