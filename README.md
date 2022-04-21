@@ -90,3 +90,57 @@ After removing the kernel object file:
 $ git add cmpe283-1.c Makefile
 $ git commit
 $ git push
+
+CMPE 283 Assignment 2 – Instrumentation via hypercall
+	Name: Janmejay Bhavsar(SJSU ID: 015931344)
+
+The following steps were followed for completing the assignment:
+1)	Navigate to the directory and update the files: /arch/x86/kvm/cupid.c and /arch/x86/kvm/vmx/vmx.c to include the code to handle the exits for nodes 0x4fffffff and 0x4ffffffe.
+2)	Next step is to build the kvm module and install the kernel using the following commands: 
+$ sudo make -j 16 modules
+$ sudo make INSTALL_MOD_STRIP=1 modules_install
+$ sudo make install
+Since I had previously made the kernel for assignment it took me a much lesser time to set it up again in this assignment
+3)	After I found that there was existing kvm and kvm_intel modules using the command: $ lsmod | grep kvm and to remove that I used the command: $ sudo rmmod kvm_intel and $ sudo rmmod kvm(follow the order to remove the modules).
+4)	Next step is to load the current kvm module which contains the code we modified in those files by using the commands: $ sudo modprobe kvm and $ sudo modprobe kvm_install(follow the ordering to load the modules).
+5)	After that I verified if the modules are loaded successfully by again using the command: $ lsmod | grep kvm
+This will successfully confirm that our module was loaded into the kernel with no errors in the code.
+6)	Now to verify if our code runs correctly I had to install an Ubuntu VM instance inside the current VM by installing the Virtual Manager by using the following commands:
+$ sudo apt update
+$ sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager
+After that I verified if the libcirt daemon is active or not by using the command: $ sudo systemctl is-active libvirtd
+7)	Next step is to add user permissions for the new processes using the following commands:
+$ sudo usermod -aG kvm $USER
+$ sudo usermod -aG libvirt $USER
+$ newgrp libvirt
+8)	After adding the permissions start the virtual manager using the command: $ virt-manager and after that boot up using an existing iso of Ubuntu and install Ubuntu in the new VM.
+9)	After installation open terminal and type the commands:
+$ sudo apt-get update -y
+$ sudo apt-get install -y cpuid
+This will install the cpuid package and let us directly input the value for which we need to check the exit outputs for.
+   10)The next step is to run the commands: 
+	$ cpuid -l 0x4fffffff and $ cpuid -l 0x4ffffffe 
+	This will display all the values in the registers in the other VM. 
+11)After running those commands in the new VM head back to the
+existing VM and enter the command dmesg to check the output of the kernel.
+Following are the screenshots of both VMs and the output displayed on the kernal message log: 
+![image](https://user-images.githubusercontent.com/89321629/164387647-3fb187bc-b4fc-4d3a-88e1-c26200458031.png)
+
+ 
+This the new instance of VM in which cpuid command is run with 0x4fffffff leaf node.
+![image](https://user-images.githubusercontent.com/89321629/164387670-79451cee-01c8-43c3-96bf-7cdd7e73c22a.png)
+
+ 
+This is the current instance of VM which displays the kernal ouput for the total number of exits performed for the above mentioned leaf node
+![image](https://user-images.githubusercontent.com/89321629/164387692-7c1f8b32-47e0-41e2-a6d9-81231c19e570.png)
+
+ 
+This the new instance of VM in which cpuid command is run with 0x4ffffffe leaf node.
+![image](https://user-images.githubusercontent.com/89321629/164387726-82bd6b7d-fd4f-4f5a-8d9f-3ef04d5e6f7a.png)
+
+ 
+This is the current instance of VM which displays the kernal ouput for the total time spent in processing all the exits for the above mentioned leaf node.
+12)The final step in this assignment is to commit the 2 files which were modified and push them onto the git repository by using the following commands:
+$ git add /arch/x86/kvm/cpuid.c /arch/x86/kvm/vmx/vmx.c
+$ git commit
+$ git push
