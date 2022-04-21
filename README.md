@@ -118,10 +118,10 @@ $ newgrp libvirt
 $ sudo apt-get update -y
 $ sudo apt-get install -y cpuid
 This will install the cpuid package and let us directly input the value for which we need to check the exit outputs for.
-10)The next step is to run the commands: 
+10)	The next step is to run the commands: 
 $ cpuid -l 0x4fffffff and $ cpuid -l 0x4ffffffe 
 This will display all the values in the registers in the other VM. 
-11)After running those commands in the new VM head back to the
+11)	After running those commands in the new VM head back to the
 existing VM and enter the command dmesg to check the output of the kernel.
 Following are the screenshots of both VMs and the output displayed on the kernal message log: 
 ![image](https://user-images.githubusercontent.com/89321629/164387647-3fb187bc-b4fc-4d3a-88e1-c26200458031.png)
@@ -140,7 +140,8 @@ This the new instance of VM in which cpuid command is run with 0x4ffffffe leaf n
 
  
 This is the current instance of VM which displays the kernal ouput for the total time spent in processing all the exits for the above mentioned leaf node.
-12)The final step in this assignment is to commit the 2 files which were modified and push them onto the git repository by using the following commands:
+
+12)	The final step in this assignment is to commit the 2 files which were modified and push them onto the git repository by using the following commands:
 $ git add /arch/x86/kvm/cpuid.c /arch/x86/kvm/vmx/vmx.c
 $ git commit
 $ git push
