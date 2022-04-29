@@ -1488,7 +1488,7 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 			printk(KERN_INFO "CPUID(0x4ffffffd): Exit count for Instruction Exit Type %u is %u", (int) exit_type, (int) vm_exit_count[exit_type]);
 			printk(KERN_INFO "Exit count for remaining exits is as follows:");
 			for (int i = 0; i < 70; i++) {
-				printk(KERN_INFO "Exit count is %u for Instruction Exit Type %u", vm_exit_count[i], index);
+				printk(KERN_INFO "Exit count is %u for Instruction Exit Type %u", vm_exit_count[i], i);
 			}
 		}
 	}
@@ -1512,8 +1512,8 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 			ecx = (time_for_exit_type[ecx]) & 0xffffffff; // 0-15 bits
 			printk(KERN_INFO "CPUID(0x4ffffffc): Time spent for exit type %u is %llu cycles", (int) exit_type, time_for_exit_type[exit_type]);
 			printk(KERN_INFO "Time spent for remaining exit types is as follows:");
-			for (int i = 0; i < 70 ;i++) {
-				printk(KERN_INFO "Time spent for exit type %u is %llu cycles", i, time_for_exit_type[index]);
+			for (int i = 0; i < 70 ; i++) {
+				printk(KERN_INFO "Time spent for exit type %u is %llu cycles", i, time_for_exit_type[i]);
 			}
 		}
 	}
