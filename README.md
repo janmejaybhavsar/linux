@@ -151,17 +151,17 @@ CMPE 283 Assignment 3 – Instrumentation via hypercall(contd.)
 	Team:
 	Janmejay Bhavsar(SJSU ID: 015931344)
 	Rushil Shah(015908789)
-Individual Member Contributions:
-Janmejay Bhavsar:
-1)	Modified the cpuid and vmx files for the code of the node 0x4ffffffc.
-2)	Built and loaded the modules and kernel after adding the code for the leaf node 0x4ffffffc.
-3)	Installed the inner VM and the cpuid packages for running the code.
-4)	Executed the program using the cpuid commands in the inner vm and displayed the output in the main vm using the dmesg command.
-Rushil Shah:
-1)	Modified the cpuid and vmx files for the code of the node 0x4ffffffd.
-2)	Built and loaded the modules and kernel after adding the code for the leaf node 0x4ffffffd.
-3)	Installed the inner VM and the cpuid packages for running the code.
-4)	Executed the program using the cpuid commands in the inner vm and displayed the output in the main vm using the dmesg command.
+	Individual Member Contributions:
+	Janmejay Bhavsar:
+	1)	Modified the cpuid and vmx files for the code of the node 0x4ffffffc.
+	2)	Built and loaded the modules and kernel after adding the code for the leaf node 0x4ffffffc.
+	3)	Installed the inner VM and the cpuid packages for running the code.
+	4)	Executed the program using the cpuid commands in the inner vm and displayed the output in the main vm using the dmesg command.
+	Rushil Shah:
+	1)	Modified the cpuid and vmx files for the code of the node 0x4ffffffd.
+	2)	Built and loaded the modules and kernel after adding the code for the leaf node 0x4ffffffd.
+	3)	Installed the inner VM and the cpuid packages for running the code.
+	4)	Executed the program using the cpuid commands in the inner vm and displayed the output in the main vm using the dmesg command.
 The following steps were followed to complete the assignment:
 1)	Navigate to the directory and update the files: /arch/x86/kvm/cupid.c and /arch/x86/kvm/vmx/vmx.c to include the code to handle the exits for nodes 0x4ffffffd and 0x4ffffffc.
 2)	Next step is to build the kvm module and install the kernel using the following commands: 
@@ -206,3 +206,64 @@ Least Frequent Exit Types are:
 4)	APIC Access(Exit Type 44)
 5)	EPT Misconfiguration(Exit Type 49)
 
+CMPE 283 Assignment 4 – Nested Paging vs. Shadow Paging
+
+	Team:
+	Janmejay Bhavsar(015931344)
+	Rushil Shah(015908789)
+	Individual Member Contributions:
+	Janmejay Bhavsar:
+
+	1)	Built and loaded the modules and kernel in the outer VM.
+	2)	Executed the cpuid command for the leaf node 0x4ffffffd in the inner VM.
+	3)	Took the screenshot of the output in the outer VM.
+	Rushil Shah:
+
+	1)	Helped with the execution of commands required to force the KVM to use shadow paging.
+	2)	Researched and answered questions 3 and 4 in this homework by comparing the with ept output and without ept output provided in the screenshots.
+The following steps were followed to complete the assignment:
+1)	Set up the same environment as that of assignment 3.
+2)	Run the command: $ cpuid -l 0x4ffffffd -s <exit_count>
+This will display the values in the eax, ebx, ecx and edx registers for that exit number.
+3)	Shutdown inner VM, using the normal OS shutdown.
+4)	In the outer VM, remove the kvm-intel module, by running the command: $ sudo rmmod kvm_intel.
+5)	Reload the module, with ept = 0 parameter, by running the command: $ sudo insmod kvm-intel.ko ept=0 to disable nested paging and force shadow paging.
+6)	Boot the inner VM again.
+7)	Then again run the command: $ cpuid -l 0x4ffffffd -s <exit_count>
+
+Include a sample of your print of exit count output from dmesg from “with ept” and “without ept”.
+
+Answer: With EPT:
+ 
+
+ ![image](https://user-images.githubusercontent.com/89321629/166092463-92c8659b-068a-453a-aef3-1a5a626253f6.png)
+ 
+![image](https://user-images.githubusercontent.com/89321629/166092472-cf88c8a0-f52c-4c63-8d97-e3a58d2eff31.png)
+
+![image](https://user-images.githubusercontent.com/89321629/166092475-162a406c-9d12-449b-8465-b8c20715106e.png)
+
+![image](https://user-images.githubusercontent.com/89321629/166092476-a8ef76db-8018-4592-9880-580dabfa6b26.png)
+ 
+
+ 
+
+Without EPT:
+ 
+![image](https://user-images.githubusercontent.com/89321629/166092480-9db75104-2417-4739-9c0b-c4154f3cd5b8.png)
+
+![image](https://user-images.githubusercontent.com/89321629/166092483-7337c9d2-c21a-4ed8-a36b-0ae1eac317cd.png)
+ 
+![image](https://user-images.githubusercontent.com/89321629/166092486-db1e4f1c-da7c-4e71-b0ce-144c9961ec1d.png)
+
+![image](https://user-images.githubusercontent.com/89321629/166092492-65be5703-5d8c-4740-9959-efcfcc8662a4.png)
+ 
+
+ 
+
+What did you learn from the count of exits? Was the count what you expected? If not, why not?
+
+Answer: Shadow paging has a higher exit count than nested paging because the VMM must do more work in shadow paging.
+
+What changed between the two runs (ept vs no-ept)?
+
+Answer: When shadow paging is enabled (ept=0), the VM conducts more TLB flushes, page faults, and other operations, resulting in more exits than when ept=1.
