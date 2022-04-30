@@ -145,3 +145,63 @@ This is the current instance of VM which displays the kernal ouput for the total
 $ git add /arch/x86/kvm/cpuid.c /arch/x86/kvm/vmx/vmx.c
 $ git commit
 $ git push
+
+CMPE 283 Assignment 3 – Instrumentation via hypercall(contd.)
+	Team:
+	Janmejay Bhavsar(SJSU ID: 015931344)
+	Rushil Shah(015908789)
+Individual Member Contributions:
+Janmejay Bhavsar:
+1)	Modified the cpuid and vmx files for the code of the node 0x4ffffffc.
+2)	Built and loaded the modules and kernel after adding the code for the leaf node 0x4ffffffc.
+3)	Installed the inner VM and the cpuid packages for running the code.
+4)	Executed the program using the cpuid commands in the inner vm and displayed the output in the main vm using the dmesg command.
+Rushil Shah:
+1)	Modified the cpuid and vmx files for the code of the node 0x4ffffffd.
+2)	Built and loaded the modules and kernel after adding the code for the leaf node 0x4ffffffd.
+3)	Installed the inner VM and the cpuid packages for running the code.
+4)	Executed the program using the cpuid commands in the inner vm and displayed the output in the main vm using the dmesg command.
+The following steps were followed to complete the assignment:
+1)	Navigate to the directory and update the files: /arch/x86/kvm/cupid.c and /arch/x86/kvm/vmx/vmx.c to include the code to handle the exits for nodes 0x4ffffffd and 0x4ffffffc.
+2)	Next step is to build the kvm module and install the kernel using the following commands: 
+$ sudo make -j 16 modules
+$ sudo make INSTALL_MOD_STRIP=1 modules_install
+$ sudo make install
+Since we had previously made the kernel for assignment it took me a much lesser time to set it up again in this assignment
+3)	After I found that there was existing kvm and kvm_intel modules using the command: $ lsmod | grep kvm and to remove that I used the command: $ sudo rmmod kvm_intel and $ sudo rmmod kvm(follow the order to remove the modules).
+4)	Next step is to load the current kvm module which contains the code we modified in those files by using the commands: $ sudo modprobe kvm and $ sudo modprobe kvm_install(follow the ordering to load the modules).
+5)	After that I verified if the modules are loaded successfully by again using the command: $ lsmod | grep kvm
+This will successfully confirm that our module was loaded into the kernel with no errors in the code.
+6)	Next start the virtual manager using the command: $ virt-manager
+Since we had already set up and installed the inner VM you can check the steps to do that in assignment 2. 
+7)	The next step is to run the commands: 
+$ cpuid -l 0x4ffffffd -s <exit_type> and $ cpuid -l 0x4ffffffc -s <exit_type>
+Here we tested out program using various exit types 
+This will display all the values in the registers in the other VM. 
+8)	After running those commands in the new VM head back to the
+existing VM and enter the command dmesg to check the output of the kernel.
+9)	The final step in this assignment is to commit the 2 files which were modified and push them onto the git repository by using the following commands:
+$ git add /arch/x86/kvm/cpuid.c /arch/x86/kvm/vmx/vmx.c
+$ git commit
+$ git push
+
+Comment on the frequency of exits – does the number of exits increase at a stable rate? Or are theremore exits performed during certain VM operations? Approximately how many exits does a full VMboot entail?
+
+Answer: No the number of exits do not increase at a stable rate, in our case some of the exits were more frequently occurring like the External Interrupt Exit and the CPUID exit but did not increase. Approximately it takes about 500000 exits for a full VMboot.
+
+Of the exit types defined in the SDM, which are the most frequent? Least?
+
+Answer: Most Frequent Exit Types are:
+1)	External Interrupt(Exit Type 1)
+2)	CPUID(Exit Type 10)
+3)	HLT(Exit Type 12)
+4)	Control-Register Accesses(Exit Type 28)
+5)	I/O Instruction(Exit Type 30)
+6)	EPT Violation(Exit Type 48)
+Least Frequent Exit Types are:
+1)	Interrupt Window(Exit Type 7)
+2)	MOV DR(Exit Type 29)
+3)	PAUSE(Exit Type 40)
+4)	APIC Access(Exit Type 44)
+5)	EPT Misconfiguration(Exit Type 49)
+
