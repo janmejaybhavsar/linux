@@ -181,12 +181,6 @@ Here we tested out program using various exit types
 This will display all the values in the registers in the other VM. 
 8)	After running those commands in the new VM head back to the
 existing VM and enter the command dmesg to check the output of the kernel.
-![image](https://user-images.githubusercontent.com/89321629/166091002-24e249d6-d91f-4ff1-a491-c5db6a83d886.png)
-
-![image](https://user-images.githubusercontent.com/89321629/166091027-dca7d331-f19b-4547-9876-d6d6c3fa2181.png)
-
-![image](https://user-images.githubusercontent.com/89321629/166091037-6235ab72-00f1-436a-919c-b08218fa1ead.png)
-
 9)	The final step in this assignment is to commit the 2 files which were modified and push them onto the git repository by using the following commands:
 $ git add /arch/x86/kvm/cpuid.c /arch/x86/kvm/vmx/vmx.c
 $ git commit
